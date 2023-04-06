@@ -15,11 +15,14 @@ from sensor_msgs.msg import PointCloud2
 import numpy as np
 import tf
 import tf.transformations
+import math
 
 global_map = None
 initialized = False
 T_map_to_odom = np.eye(4)
 cur_odom = None
+
+# fast lio 发布的 cloud_registered 点云，在 odom frame 下
 cur_scan = None
 
 
@@ -124,6 +127,7 @@ def global_localization(pose_estimation):
 
     tic = time.time()
 
+    # base link frame 下的 map 点云
     global_map_in_FOV = crop_global_map_in_FOV(global_map, pose_estimation, cur_odom)
 
     # 粗配准
@@ -134,7 +138,8 @@ def global_localization(pose_estimation):
                                                     scale=1)
     toc = time.time()
     rospy.loginfo('Time: {}'.format(toc - tic))
-    rospy.loginfo('')
+    rospy.loginfo('fitness score:{}'.format(fitness))
+    rospy.loginfo('-----------------------------------')
 
     # 当全局定位成功时才更新map2odom
     if fitness > LOCALIZATION_TH:
@@ -153,7 +158,6 @@ def global_localization(pose_estimation):
     else:
         rospy.logwarn('Not match!!!!')
         rospy.logwarn('{}'.format(transformation))
-        rospy.logwarn('fitness score:{}'.format(fitness))
         return False
 
 
@@ -219,7 +223,8 @@ if __name__ == '__main__':
     LOCALIZATION_TH = 0.95
 
     # FOV(rad), modify this according to your LiDAR type
-    FOV = 1.6
+    # FOV = 1.6
+    FOV = 2 * math.pi
 
     # The farthest distance(meters) within FOV
     FOV_FAR = 150
