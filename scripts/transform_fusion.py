@@ -10,11 +10,25 @@ import numpy as np
 import rospy
 import tf
 import tf.transformations
-from geometry_msgs.msg import Pose, Point, Quaternion
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose, Point, Quaternion, PoseStamped
+from nav_msgs.msg import Odometry, Path
 
 cur_odom_to_baselink = None
 cur_map_to_odom = None
+
+
+class OdomToPath:
+    def __init__(self, pub_topic_name):
+        self.path_pub = rospy.Publisher(pub_topic_name, Path, latch=True, queue_size=1)
+        self.path = Path()
+
+    def add_odom(self, odom):
+        cur_pose = PoseStamped()
+        cur_pose.header = odom.header
+        cur_pose.pose = odom.pose.pose
+        self.path.header = odom.header
+        self.path.poses.append(cur_pose)
+        self.path_pub.publish(self.path)
 
 
 def pose_to_mat(pose_msg):
@@ -25,7 +39,7 @@ def pose_to_mat(pose_msg):
 
 
 def transform_fusion():
-    global cur_odom_to_baselink, cur_map_to_odom
+    global cur_odom_to_baselink, cur_map_to_odom, path_publisher
 
     br = tf.TransformBroadcaster()
     while True:
@@ -58,6 +72,9 @@ def transform_fusion():
             localization.child_frame_id = 'body'
             # rospy.loginfo_throttle(1, '{}'.format(np.matmul(T_map_to_odom, T_odom_to_base_link)))
             pub_localization.publish(localization)
+            
+            # 发布全局路径
+            path_publisher.add_odom(localization)
 
 
 def cb_save_cur_odom(odom_msg):
@@ -81,6 +98,7 @@ if __name__ == '__main__':
     rospy.Subscriber('/map_to_odom', Odometry, cb_save_map_to_odom, queue_size=1)
 
     pub_localization = rospy.Publisher('/localization', Odometry, queue_size=1)
+    path_publisher = OdomToPath('/global_path')
 
     # 发布定位消息
     thread.start_new_thread(transform_fusion, ())
