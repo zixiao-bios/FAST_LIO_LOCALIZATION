@@ -29,11 +29,7 @@ A simple localization framework that can re-localize in built maps based on [FAS
 
 
 ## 2. Prerequisites
-### 2.1 Dependencies for FAST-LIO
-
-Technically, if you have built and run FAST-LIO before, you may skip section 2.1.
-
-This part of dependency is consistent with FAST-LIO, please refer to the documentation https://github.com/hku-mars/FAST_LIO#1-prerequisites
+### 2.1 [FAST-LIO](https://github.com/hku-mars/FAST_LIO). 
 
 ### 2.2 Dependencies for localization module
 
@@ -64,16 +60,21 @@ Then
 pip install open3d==0.9
 ```
 
+### 2.3 ROS node to publish global map
+
+Any node can publish PointCloud2 from your pointcloud file format is ok, recommend：
+
+* For pcd file: [pcl_ros/pcd_to_pointcloud](http://wiki.ros.org/pcl_ros)
+
+* For ply file: [ply_ros_publisher](https://github.com/ToniRV/ply_ros_publisher)
 
 ## 3. Build
 Clone the repository and catkin_make:
 
 ```
     cd ~/$A_ROS_DIR$/src
-    git clone https://github.com/HViktorTsoi/FAST_LIO_LOCALIZATION.git
-    cd FAST_LIO_LOCALIZATION
-    git submodule update --init
-    cd ../..
+    git clone https://github.com/zixiao-bios/FAST_LIO_LOCALIZATION.git
+    cd ..
     catkin_make
     source devel/setup.bash
 ```
