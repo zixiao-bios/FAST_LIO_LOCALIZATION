@@ -1,8 +1,9 @@
 <launch>
 	<!-- <arg name="map" default="/home/zixiao/maps/down.pcd" /> -->
-	<arg name="map" default="/home/zixiao/maps/yq_office_corrected.ply" />
+	<!-- <arg name="map" default="/home/zixiao/maps/yq_office_corrected.ply" /> -->
 	<!-- <arg name="map" default="/home/zixiao/maps/yq_office.pcd" /> -->
 	<!-- <arg name="map" default="/home/zixiao/maps/yq01_down.pcd" /> -->
+	<arg name="map" default="/home/zixiao/maps/yq_mix_01_corrected.ply" />
 
 	<arg name="record_topic" default="/livox/lidar /livox/imu /tf /map /global_path /cur_scan_in_map" />
 
@@ -22,11 +23,11 @@
 	<!-- glbal map-->
 
 	<!-- pcd file -->
-    <!-- <node pkg="pcl_ros" type="pcd_to_pointcloud" name="map_publishe" output="screen"
+    <!-- <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pc_map_publisher" output="screen"
 		  args="$(arg map) 5 _frame_id:=/map cloud_pcd:=/map" /> -->
 	
 	<!-- ply file -->
-	<node name="ply_ros_publisher" pkg="ply_ros_publisher" type="ply_ros_publisher" output="screen" args="">
+	<node name="pc_map_publisher" pkg="ply_ros_publisher" type="ply_ros_publisher" output="screen" args="">
 		<remap from="ply_pointcloud" to="map"/>
 		<param name="load_ply_type" value="1"/>
 		<param name="ply_filepath" value="$(arg map)"/>
@@ -35,12 +36,14 @@
 
 
 	<!-- fast-lio -->
-	<include file="$(find fast_lio)/launch/mapping_pure.launch" />
+	<include file="$(find fast_lio_localization)/launch/fast_lio_pure.launch" />
 
+	<!-- body to base_link -->
+	<node pkg="tf" type="static_transform_publisher" name="body_to_base_link" args="-0.4 -0.33 0 0 0 0 body base_link 100" />
 
 	<!-- record rosbag -->
-	<node pkg="rosbag" type="record" name="rosbag_record" 
-	args="record -o /home/zixiao/bags/yuhesen_loc $(arg record_topic)"/>
+	<!-- <node pkg="rosbag" type="record" name="rosbag_record" 
+	args="record -o /home/zixiao/bags/yuhesen_loc_stop $(arg record_topic)"/> -->
 
 
 	<node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_lio_localization)/rviz_cfg/localization.rviz" />
